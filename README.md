@@ -1,8 +1,57 @@
 # # Husky
 
-## [Getting](http://wiki.ros.org/husky_bringup/Tutorials/Install%20Husky%20Software%20%28Advanced%29) [Started](http://www.clearpathrobotics.com/assets/guides/husky/InstallHuskySoftware.html)
+## Getting Started
 
-### Installing
+There are two ways to setup the Husky software. Either you can do a fresh Ubuntu install using a specially made Clearpath ISO, or you can manually install the software on your Ubuntu machine (**The Ubuntu Machine must be at least 16.04 and have apt-get**, so Ubuntu Core will not work using this procedure). These instructions will cover both installation instructions.
+
+### [Installation on an existing Ubuntu System](http://wiki.ros.org/husky_bringup/Tutorials/Install%20Husky%20Software%20%28Advanced%29)
+
+1) Setup your robot PC to with Ubuntu Xenial
+2) Setup ROS [Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu)
+3) Setup the [Clearpath Robotics packages repository](http://packages.clearpathrobotics.com) 
+4) Install the Husky packages: 
+```
+$ sudo apt-get install ros-kinetic-husky-robot
+```
+5) Install the udev rules that come with Husky:
+```
+ $ sudo cp $(rospack find husky_bringup)/udev/*.rules /etc/udev/rules.d
+```
+6) Create a robot-wide setup file, such as /etc/ros/setup.bash (sample below): 
+```
+# Mark location of self so that robot_upstart knows where to find the setup file.
+export ROBOT_SETUP=/etc/ros/setup.bash
+ 
+# Setup robot upstart jobs to use the IP from the network bridge.
+# export ROBOT_NETWORK=br0
+# Insert extra platform-level environment variables here. The six hashes below are a marker
+# for scripts to insert to this file.
+ 
+######
+# Pass through to the main ROS workspace of the system.
+source /opt/ros/kinetic/setup.bash
+```
+7) Source this robot-wide setup file in your ~/.bashrc file: 
+```
+source /etc/ros/setup.bash
+```
+8) Refresh your environment by executing: 
+```
+$ . ~/.bashrc
+```
+9) Create a robot_upstart job to start the Husky software each time the robot PC is booted. This command will create the job, and copy the base.launch file to the /etc/ros/kinetic/husky-core.d/ directory: 
+```
+$ rosrun robot_upstart install husky_base/launch/base.launch --job husky-core --setup '/etc/ros/setup.bash'
+```
+10) To start launch files for additional standard Husky components, we can augment the husky-core job. Run the following command to add any launch files in the husky_bringup/launch/um6_config/ directory to the job:
+```
+$ rosrun robot_upstart install husky_bringup/launch/um6_config --job husky-core --augment
+```
+
+**Warning** ROS Kinetic is written to run with python 2.7, if you installed Anaconda or have modified your default python settings in some way your computer might try to run this files using python 3. You can check this using the command `python --version`
+
+
+### [Installation using Clearpath ISO](http://www.clearpathrobotics.com/assets/guides/husky/InstallHuskySoftware.html)
 1) Download the appropriate [Kinetic Husky ISO](http://packages.clearpathrobotics.com/stable/images/latest/kinetic-husky/) image for your platform (32 bit - i386, 64 bit - amd64).
 
 2) Setup an install USB
@@ -23,9 +72,6 @@
 $ rosrun husky_bringup install
 ```
 The install script will configure a husky-core upstart service, that will bring up the base Husky launchfiles on boot. The script will also detect any standard peripherals (IMU, GPS, etc.) you have installed, and add them the service.
-
-## SPECIAL STEPS
-At this point in our initial install we followed the instructions in [this](http://wiki.ros.org/husky_bringup/Tutorials/Install%20Husky%20Software%20%28Advanced%29) link at the advice of team fire fighting. It is unclear whether this was strictly necessary, but this is how we got it working.
 
 ## Testing base configuration
 
